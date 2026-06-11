@@ -21,6 +21,7 @@ A production-ready RESTful backend API for a Retrieval-Augmented Generation (RAG
 - **🚦 Rate Limiting:** Fixed-window counter protecting the Gemini API from abuse (20 requests/min per IP).
 - **⚙️ Background Workers:** Non-blocking PDF processing via Redis `LPUSH`/`BRPOP` job queues.
 - **📌 Hallucination Prevention:** Strict system prompting and similarity thresholding to ensure answers come *only* from the document.
+- **🎨 Frontend:** Vibecoded frontend using Antigravity AI.
 
 ---
 
