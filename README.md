@@ -18,7 +18,6 @@ A production-ready RESTful backend API for a Retrieval-Augmented Generation (RAG
 - **🔍 Semantic Vector Search:** Powered by MongoDB Atlas `$vectorSearch` with cosine similarity and metadata filtering.
 - **💬 Streaming Responses:** ChatGPT-style word-by-word streaming using Server-Sent Events (SSE) and `gemini-3.0-flash`.
 - **🧠 Conversation Memory:** Remembers context across multi-turn Q&A sessions using Redis Lists.
-- **⚡ Response Caching:** Sub-500ms responses for repeated queries using Redis exact-match caching.
 - **🚦 Rate Limiting:** Fixed-window counter protecting the Gemini API from abuse (20 requests/min per IP).
 - **⚙️ Background Workers:** Non-blocking PDF processing via Redis `LPUSH`/`BRPOP` job queues.
 - **📌 Hallucination Prevention:** Strict system prompting and similarity thresholding to ensure answers come *only* from the document.
@@ -40,9 +39,9 @@ A production-ready RESTful backend API for a Retrieval-Augmented Generation (RAG
 
 ### Query & RAG Flow
 ```text
-[User Question] → Rate Limit Check → Cache Check (Hit? Return ⚡)
-       │
-       └─► Miss! → Load Chat History (Redis)
+[User Question] → Rate Limit Check
+                       │
+                       └─► Load Chat History (Redis)
                          │
                          └─► Embed Question (Gemini) → MongoDB $vectorSearch (Top 5 Chunks)
                                │
@@ -50,7 +49,7 @@ A production-ready RESTful backend API for a Retrieval-Augmented Generation (RAG
                                       │
                                       └─► Gemini Chat API → Stream SSE to Client 
                                       │
-                                      └─► Save to Cache & History
+                                      └─► Save to History
 ```
 
 ---
@@ -160,5 +159,4 @@ The server will start on `http://localhost:8000` and the background ingestion wo
 
 - **Why Redis for Job Queues?** `BRPOP` provides a lightweight, blocking, zero-polling background task mechanism perfectly suited for single-node Node.js apps without adding the overhead of RabbitMQ or Kafka.
 - **Why Cosine Similarity?** Cosine similarity measures the angle between vectors, making it highly effective for semantic text matching regardless of the text length (magnitude).
-- **Why Exact-Match Caching?** A semantic cache requires an extra embedding API call and complex threshold tuning. Exact-match caching using SHA-256 hashes of the question provides instant, zero-cost responses for repeated queries with zero false positives.
 - **Why SSE for Chat?** Generating complex LLM responses can take several seconds. Server-Sent Events allow the backend to stream tokens to the client as they are generated, vastly improving perceived performance and UX.

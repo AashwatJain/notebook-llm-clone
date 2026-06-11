@@ -5,9 +5,16 @@ import { searchChunks } from "../services/retrieval.service.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import {
+  saveMessage,
+  getHistory,
+  deleteHistory,
+} from "../services/history.service.js";
 
 const askQuestion = asyncHandler(async (req, res) => {
   const { question, sessionId, documentId } = req.body;
+
+  console.log(sessionId);
 
   if (!documentId || !sessionId || !question || question.trim() === "")
     throw new ApiError(400, "All fields are req");
@@ -25,7 +32,7 @@ const askQuestion = asyncHandler(async (req, res) => {
       "Document is still being processed. Try again later",
     );
 
-//   console.log(question, sessionId, documentId);
+  //   console.log(question, sessionId, documentId);
 
   const [questionEmbedding] = await generateEmbeddings([
     {
@@ -33,7 +40,7 @@ const askQuestion = asyncHandler(async (req, res) => {
     },
   ]);
 
-//   console.log(questionEmbedding);
+  //   console.log(questionEmbedding);
 
   const chunks = await searchChunks(questionEmbedding, documentId);
 
@@ -51,7 +58,9 @@ const askQuestion = asyncHandler(async (req, res) => {
       );
   }
 
-  const prompt = buildPrompt(question, chunks);
+  const history = await getHistory(sessionId);
+
+  const prompt = buildPrompt(question, chunks, history);
   const stream = await streamAnswer(prompt);
 
   // header set hore hai yaha
@@ -67,9 +76,11 @@ const askQuestion = asyncHandler(async (req, res) => {
       score: chunk.score,
     });
   }
+  let fullAnswer = "";
 
   for await (const chunk of stream) {
     if (chunk.text) {
+      fullAnswer += chunk.text;
       res.write(
         `data: ${JSON.stringify({
           content: chunk.text,
@@ -78,8 +89,25 @@ const askQuestion = asyncHandler(async (req, res) => {
     }
   }
 
+  await saveMessage(sessionId, "user", question);
+  await saveMessage(sessionId, "model", fullAnswer);
+
   res.write(`data: ${JSON.stringify({ done: true, sources })}\n\n`);
   res.end();
 });
 
-export { askQuestion };
+const history = asyncHandler(async (req, res) => {
+  const { sessionId } = req.params;
+
+  const history = await getHistory(sessionId);
+
+  res.status(200).json(new ApiResponse(200, { history }, "History retrieved"));
+});
+
+const delHistory = asyncHandler(async (req, res) => {
+  const { sessionId } = req.params;
+  await deleteHistory(sessionId);
+  res.status(200).json(new ApiResponse(200, {}, "History deleted"));
+});
+
+export { askQuestion, history, delHistory };

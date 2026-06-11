@@ -1,5 +1,6 @@
 import { Chunk } from "../models/chunks.model.js";
 import mongoose from "mongoose";
+import { SIMILARITY_THRESHOLD } from "../utils/constants.js";
 
 export const searchChunks = async (queryEmbedding, documentId, topK = 5) => {
   
@@ -28,7 +29,7 @@ export const searchChunks = async (queryEmbedding, documentId, topK = 5) => {
     },
     {
       $match: {
-        score: { $gte: 0.7 }, // SIMILARITY_THRESHOLD
+        score: { $gte: SIMILARITY_THRESHOLD }, // SIMILARITY_THRESHOLD
       },
     },
   ];
