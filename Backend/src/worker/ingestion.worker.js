@@ -11,13 +11,14 @@ export const startWorker = async () => {
 
     if (!data) continue;
 
-    let documentId;
+    let documentId, jobId;
     try {
       // console.log(data);
 
       const parsedData = JSON.parse(data[1]);
       documentId = parsedData.documentId;
-      const { filePath, jobId } = parsedData;
+      jobId = parsedData.jobId;
+      const { filePath } = parsedData;
 
       await redis.hset(`job:${jobId}`, "status", "parsing");
 
@@ -31,8 +32,10 @@ export const startWorker = async () => {
 
       const embeddings = await generateEmbeddings(chunks);
 
+      const chunksData = [];
+
       for (let i = 0; i < chunks.length; ++i) {
-        const chunk = await Chunk.create({
+        chunksData.push({
           documentId,
           text: chunks[i].text,
           embedding: embeddings[i],
@@ -43,6 +46,8 @@ export const startWorker = async () => {
           },
         });
       }
+
+      await Chunk.insertMany(chunksData);
 
       await redis.hset(`job:${jobId}`, "status", "completed");
 
@@ -60,6 +65,9 @@ export const startWorker = async () => {
           status: "failed",
           errorMessage: error.message || "Worker processing failed",
         });
+      }
+      if (jobId) {
+        await redis.hset(`job:${jobId}`, "status", "failed");
       }
     }
   }
