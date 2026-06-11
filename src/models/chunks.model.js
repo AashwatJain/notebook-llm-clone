@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const chunkSchema = new mongoose.Schema(
   {
-    document: {
+    documentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Document",
       required: true,
@@ -20,7 +20,6 @@ const chunkSchema = new mongoose.Schema(
     },
 
     metadata: {
-      pageNumber: Number,
       chunkIndex: Number,
       startChar: Number,
       endChar: Number,

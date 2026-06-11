@@ -1,10 +1,11 @@
 export const CHUNK_SIZE = 600;           // characters per chunk
 export const CHUNK_OVERLAP = 100;        // overlap between chunks
-export const EMBEDDING_MODEL = "text-embedding-004";  // Gemini embedding model
+export const EMBEDDING_MODEL = "gemini-embedding-2";  // Gemini embedding model
 export const EMBEDDING_DIMENSIONS = 768; // Gemini text-embedding-004 outputs 768 dims
-export const CHAT_MODEL = "gemini-3.0-flash";         // Gemini chat model (fast + cheap)
+export const CHAT_MODEL = "gemini-2.5-flash";         // Gemini chat model (fast + cheap)
 export const MAX_CHUNKS_PER_QUERY = 5;   // top K chunks to retrieve
 export const SIMILARITY_THRESHOLD = 0.7; // minimum similarity score
+export const JOB_TTL = 3600; // 1 hour
 export const CACHE_TTL = 3600;           // 1 hour in seconds
 export const HISTORY_TTL = 86400;        // 24 hours in seconds
 export const HISTORY_MAX_LENGTH = 20;    // max messages in history

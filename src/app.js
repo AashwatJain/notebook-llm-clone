@@ -15,6 +15,6 @@ app.use("/api/documents", documentRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/job", jobRouter);
 
-app.use(errorHandler)
+app.use(errorHandler);
 
 export { app };
